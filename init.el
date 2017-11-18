@@ -62,8 +62,6 @@
   ;; (setq scroll-down-aggressively 0.8)
   ;; (setq scroll-up-aggressively 0.2)
   ;; (setq scroll-step 6)
-  (global-set-key (kbd "<wheel-right>") 'maybe-delete-frame-buffer)
-  (global-set-key (kbd "M-W") 'maybe-delete-frame-buffer)
   ;; Turn on horizontal scrolling with mouse wheel.
   (global-set-key [wheel-left] 'scroll-right)
   (global-set-key [wheel-right] 'scroll-left)
@@ -384,6 +382,25 @@
 ;;
 ;; Misc. functions
 ;;
+
+  (defun maybe-delete-frame-buffer ()
+    "Deletes the frame and if the current frame is the last one
+     to contain the current buffer, then is kills the frame
+     together with the buffer. Otherwise it only kills the
+     frame. If the current frame is the last frame, then kill the
+     current buffer and switch to *scratch*."
+    (interactive)
+    (if (eq 1 (length (frame-list)))
+        (progn
+          (kill-buffer)
+          (switch-to-buffer "*scratch*"))
+      (let ((windows (window-list (selected-frame))))
+        (when (eq 1 (length windows))
+          (let ((buffer (window-buffer (car windows))))
+            (when (eq 1 (length (get-buffer-window-list buffer nil t)))
+              (when (not (member (buffer-name buffer) '("*spacemacs*" "*Messages*")))
+                (kill-buffer buffer)))))
+        (delete-frame))))
 
 (defun eval-and-replace ()
   "Replace the preceding sexp with its value."
